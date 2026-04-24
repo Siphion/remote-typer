@@ -1,0 +1,67 @@
+name: Build extension
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest
+        id: meta
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            NAME="canvasclip-${GITHUB_REF_NAME}.zip"
+          else
+            NAME="canvasclip-v${VERSION}.zip"
+          fi
+          echo "zip_name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Build zip
+        run: |
+          mkdir -p dist
+          zip -r "dist/${{ steps.meta.outputs.zip_name }}" \
+            manifest.json \
+            popup.html \
+            popup.js \
+            content.js \
+            background.js \
+            overlay.js \
+            offscreen.html \
+            offscreen.js \
+            icons/icon16.png \
+            icons/icon48.png \
+            icons/icon128.png \
+            vendor/tesseract.min.js \
+            vendor/worker.min.js \
+            vendor/tesseract-core-simd-lstm.wasm.js \
+            README.md \
+            LICENSE
+          ls -lh dist/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: canvasclip-extension
+          path: dist/${{ steps.meta.outputs.zip_name }}
+          if-no-files-found: error
+
+      - name: Create GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ steps.meta.outputs.zip_name }}
+          generate_release_notes: true

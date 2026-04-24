@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CanvasClip</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --fg: #e6e6e6;
+      --muted: #9aa0a6;
+      --accent: #4f8cff;
+      --accent-hover: #3a78ee;
+      --danger: #d14b4b;
+      --success: #22c55e;
+      --border: #333;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      width: 380px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 13px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px 0 14px;
+    }
+    h1 {
+      font-size: 15px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin: 10px 14px 0 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab.active {
+      color: var(--fg);
+      border-bottom-color: var(--accent);
+    }
+    .tab:hover:not(.active) { color: var(--fg); }
+
+    .pane {
+      display: none;
+      padding: 12px 14px 14px 14px;
+    }
+    .pane.active { display: block; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      resize: vertical;
+      background: #111;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      margin-top: 10px;
+    }
+    .field { flex: 1; }
+    input[type="number"] {
+      width: 100%;
+      background: #111;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+    input[type="number"]:focus { outline: none; border-color: var(--accent); }
+
+    select {
+      width: 100%;
+      background: #111;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    select:focus { outline: none; border-color: var(--accent); }
+
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled {
+      background: #2a3a5a;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: #2a2a2a; color: var(--fg); }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .actions .btn-primary { flex: 1; }
+
+    #status, #ocr-status {
+      margin-top: 10px;
+      font-size: 12px;
+      min-height: 18px;
+      color: var(--muted);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+    #status.typing, #ocr-status.working { color: var(--accent); }
+    #status.done, #ocr-status.done { color: var(--success); font-weight: 600; }
+    #status.error, #ocr-status.error { color: var(--danger); }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .progress {
+      margin-top: 8px;
+      height: 6px;
+      background: #111;
+      border-radius: 3px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress.visible { display: block; }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.2s;
+    }
+
+    footer {
+      padding: 6px 14px 8px 14px;
+      text-align: center;
+      font-size: 9px;
+      color: var(--muted);
+      opacity: 0.4;
+      font-style: italic;
+      letter-spacing: 0.2px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span class="dot"></span> CanvasClip</h1>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="typer" type="button">⌨️ Typer</button>
+    <button class="tab" data-tab="ocr" type="button">📷 OCR</button>
+  </div>
+
+  <!-- Typer pane -->
+  <section class="pane active" data-pane="typer">
+    <label for="text">Text to type</label>
+    <textarea id="text" placeholder="Paste here the text you want to type into the remote desktop..."></textarea>
+
+    <div class="row">
+      <div class="field">
+        <label for="delay">Delay (ms)</label>
+        <input type="number" id="delay" value="40" min="0" max="5000" step="5" />
+      </div>
+      <button id="clear" class="btn-secondary" type="button">Clear</button>
+    </div>
+
+    <div class="actions">
+      <button id="type" class="btn-primary" type="button">Type It</button>
+    </div>
+
+    <div id="status">Ready.</div>
+
+    <div class="hint">
+      Click into the target field in the remote desktop tab first, then click <b>Type It</b>. Canvas-based remote desktops (Guacamole, noVNC, WorkSpaces Web) are supported — events are dispatched on the session canvas.
+    </div>
+  </section>
+
+  <!-- OCR pane -->
+  <section class="pane" data-pane="ocr">
+    <label>Grab text from the tab</label>
+    <div class="hint" style="margin-top: 0; margin-bottom: 8px;">
+      Click <b>Select Area</b>, then draw a rectangle around the text you want to extract. Useful when the remote desktop renders text into a canvas that can't be copied.
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="ocr-lang">Language</label>
+        <select id="ocr-lang">
+          <option value="eng+ita">English + Italian</option>
+          <option value="eng">English</option>
+          <option value="ita">Italian</option>
+          <option value="spa">Spanish</option>
+          <option value="fra">French</option>
+          <option value="deu">German</option>
+          <option value="por">Portuguese</option>
+          <option value="nld">Dutch</option>
+          <option value="rus">Russian</option>
+          <option value="jpn">Japanese</option>
+          <option value="chi_sim">Chinese (Simplified)</option>
+          <option value="chi_tra">Chinese (Traditional)</option>
+          <option value="kor">Korean</option>
+          <option value="ara">Arabic</option>
+          <option value="eng+spa">English + Spanish</option>
+          <option value="eng+fra">English + French</option>
+          <option value="eng+deu">English + German</option>
+        </select>
+      </div>
+      <button id="ocr-select" class="btn-primary" type="button">Select Area</button>
+    </div>
+
+    <div class="progress" id="ocr-progress-wrap">
+      <div class="progress-bar" id="ocr-progress-bar"></div>
+    </div>
+
+    <div id="ocr-status">Ready.</div>
+
+    <label for="ocr-text" style="margin-top: 10px;">Recognized text</label>
+    <textarea id="ocr-text" placeholder="OCR output will appear here..."></textarea>
+
+    <div class="actions">
+      <button id="ocr-copy" class="btn-primary" type="button">Copy</button>
+      <button id="ocr-clear" class="btn-secondary" type="button">Clear</button>
+    </div>
+  </section>
+
+  <footer>built out of frustration 😠 by Siphion</footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
