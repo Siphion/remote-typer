@@ -1,6 +1,6 @@
 # CanvasClip
 
-Chrome extension (Manifest V3). A **clipboard bridge for browser-based remote desktops** that render the session into an HTML `<canvas>` — Apache Guacamole, noVNC, AWS WorkSpaces Web, Citrix HDX in-browser, Parsec web client, and similar. These tools run the remote screen as pixels painted on a canvas: there's no DOM input to target, no text to select, and the browser's clipboard is usually **not** forwarded into the remote session. Copy-paste between the host OS and the remote machine simply doesn't work.
+Chrome extension (Manifest V3). A **clipboard bridge for browser-based remote desktops** that render the session into an HTML `<canvas>` — Apache Guacamole, noVNC, AWS WorkSpaces Web, Citrix HDX in-browser, Parsec web client, Catonetworks, and similar. These tools run the remote screen as pixels painted on a canvas: there's no DOM input to target, no text to select, and the browser's clipboard is usually **not** forwarded into the remote session. Copy-paste between the host OS and the remote machine simply doesn't work.
 
 CanvasClip fixes this in both directions:
 
